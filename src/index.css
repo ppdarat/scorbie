@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Prompt:wght@400;600;700&display=swap');
+
+@theme {
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --font-prompt: "Prompt", "Poppins", system-ui, sans-serif;
+  
+  --color-pastel-purple: #cdb4db;
+  --color-pastel-pink-dark: #ffafcc;
+  --color-pastel-pink-light: #ffc8dd;
+  --color-pastel-blue-dark: #a2d2ff;
+  --color-pastel-blue-light: #bde0fe;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f8f9fa; /* Light background instead of dark */
+  color: #1f2937; /* Dark text for light background */
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+}
