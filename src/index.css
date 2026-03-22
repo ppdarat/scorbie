@@ -8,8 +8,10 @@
   --color-pastel-purple: #cdb4db;
   --color-pastel-pink-dark: #ffafcc;
   --color-pastel-pink-light: #ffc8dd;
+  --color-pastel-pink-hover: #ffd1e1;
   --color-pastel-blue-dark: #a2d2ff;
   --color-pastel-blue-light: #bde0fe;
+  --color-pastel-blue-hover: #c9e5ff;
 }
 
 body {

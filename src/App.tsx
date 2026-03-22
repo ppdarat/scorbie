@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Settings, RotateCcw, Minus, CircleDot, ArrowLeftRight } from 'lucide-react';
 import SettingsModal from './components/SettingsModal';
+import PlayerRow from './components/PlayerRow';
 import { playScoreSound, playWinSound } from './utils/audio';
+import { applyThemePalette, THEME_PRESETS } from './theme-presets';
+
+const EMOJI_POOL = ['🐳', '🦄', '🐸', '🦊', '🐙', '🦁', '🐶', '🐼', '🐱', '🐔'];
 
 // Custom Shuttlecock Icon
 const ShuttlecockIcon = ({ className }: { className?: string }) => (
@@ -29,20 +33,27 @@ export type GameSettings = {
   enableSkunkRule: boolean;
   enableDeuce: boolean;
   enableServingLogic: boolean;
+  enableDoublesMode: boolean;
+  themeIndex: number;
 };
+
+type TeamPlayers = { left: string; right: string };
+type EmojiPickerState = { team: 1 | 2; position: 'left' | 'right' } | null;
 
 type TeamColor = 'blue' | 'pink';
 
-const colorClasses: Record<TeamColor, { bg: string; bgDark: string; winnerBg: string }> = {
+const colorClasses: Record<TeamColor, { bg: string; bgDark: string; winnerBg: string; winnerText: string }> = {
   blue: {
     bg: 'bg-[var(--color-pastel-blue-light)]',
-    bgDark: 'hover:bg-[var(--color-pastel-blue-dark)] active:bg-[var(--color-pastel-blue-dark)]',
+    bgDark: 'hover:bg-[var(--color-pastel-blue-hover)] active:bg-[var(--color-pastel-blue-hover)]',
     winnerBg: 'bg-[var(--color-pastel-blue-dark)]',
+    winnerText: 'text-[var(--text-on-blue-dark)]',
   },
   pink: {
     bg: 'bg-[var(--color-pastel-pink-light)]',
-    bgDark: 'hover:bg-[var(--color-pastel-pink-dark)] active:bg-[var(--color-pastel-pink-dark)]',
+    bgDark: 'hover:bg-[var(--color-pastel-pink-hover)] active:bg-[var(--color-pastel-pink-hover)]',
     winnerBg: 'bg-[var(--color-pastel-pink-dark)]',
+    winnerText: 'text-[var(--text-on-pink-dark)]',
   },
 };
 
@@ -55,7 +66,18 @@ function App() {
     enableSkunkRule: false,
     enableDeuce: true,
     enableServingLogic: true,
+    enableDoublesMode: false,
+    themeIndex: 0,
   });
+
+  useEffect(() => {
+    const i = Math.min(Math.max(0, settings.themeIndex), THEME_PRESETS.length - 1);
+    applyThemePalette(THEME_PRESETS[i]);
+  }, [settings.themeIndex]);
+
+  const [team1Players, setTeam1Players] = useState<TeamPlayers>({ left: '🐳', right: '🦄' });
+  const [team2Players, setTeam2Players] = useState<TeamPlayers>({ left: '🐸', right: '🦊' });
+  const [emojiPicker, setEmojiPicker] = useState<EmojiPickerState>(null);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [winner, setWinner] = useState<number | null>(null);
@@ -106,8 +128,12 @@ function App() {
 
   const handleScore = (teamIndex: 1 | 2, amount: number) => {
     if (winner) return;
-    
+
     if (amount > 0) {
+      if (settings.enableDoublesMode && settings.enableServingLogic && servingTeam === teamIndex) {
+        if (teamIndex === 1) setTeam1Players(p => ({ left: p.right, right: p.left }));
+        else setTeam2Players(p => ({ left: p.right, right: p.left }));
+      }
       setServingTeam(teamIndex);
       playScoreSound();
     }
@@ -122,14 +148,34 @@ function App() {
   const handleSwap = () => {
     setTeam1(team2);
     setTeam2(team1);
+    setTeam1Players(team2Players);
+    setTeam2Players(team1Players);
     setServingTeam(prev => (prev === 1 ? 2 : 1));
   };
 
   const handleReset = () => {
+    const shuffled = [...EMOJI_POOL].sort(() => Math.random() - 0.5);
+    setTeam1Players({ left: shuffled[0], right: shuffled[1] });
+    setTeam2Players({ left: shuffled[2], right: shuffled[3] });
     setTeam1(prev => ({ ...prev, score: 0, color: 'blue' }));
     setTeam2(prev => ({ ...prev, score: 0, color: 'pink' }));
     setWinner(null);
     setServingTeam(1);
+  };
+
+  const getServingPosition = (teamIndex: 1 | 2): 'left' | 'right' | null => {
+    if (!settings.enableDoublesMode || !settings.enableServingLogic) return null;
+    if (servingTeam !== teamIndex) return null;
+    const score = teamIndex === 1 ? team1.score : team2.score;
+    return score % 2 === 0 ? 'right' : 'left';
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    if (!emojiPicker) return;
+    const { team, position } = emojiPicker;
+    if (team === 1) setTeam1Players(p => ({ ...p, [position]: emoji }));
+    else setTeam2Players(p => ({ ...p, [position]: emoji }));
+    setEmojiPicker(null);
   };
 
   const isDeuceMode =
@@ -157,7 +203,7 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen w-full flex-col bg-[#f8f9fa] text-gray-800 overflow-hidden select-none font-sans">
+    <div className="flex h-screen w-full flex-col bg-[color-mix(in_srgb,var(--color-pastel-blue-light)_22%,white)] text-gray-800 overflow-hidden select-none font-sans">
       {/* Top Bar */}
       <div className="flex items-center justify-between p-4 landscape:p-2 landscape:md:p-4 bg-[var(--color-pastel-purple)] shadow-sm z-20 rounded-b-2xl mx-2 mt-2 landscape:mt-1 landscape:md:mt-2 relative">
         {/* Empty div for flex spacing */}
@@ -210,8 +256,16 @@ function App() {
               type="text" 
               value={team1.name}
               onChange={(e) => setTeam1({ ...team1, name: e.target.value })}
-              className="bg-transparent text-3xl landscape:text-3xl landscape:md:text-5xl md:text-5xl font-bold text-center w-full outline-none focus:border-b-2 border-white/50 transition-colors font-prompt text-gray-800"
+              className="bg-transparent text-3xl landscape:text-xl landscape:md:text-5xl md:text-5xl font-bold text-center w-full outline-none focus:border-b-2 border-white/50 transition-colors font-prompt text-gray-800"
             />
+            {settings.enableDoublesMode && (
+              <PlayerRow
+                players={team1Players}
+                servingPosition={getServingPosition(1)}
+                onSwap={() => setTeam1Players(p => ({ left: p.right, right: p.left }))}
+                onEmojiTap={(pos) => setEmojiPicker({ team: 1, position: pos })}
+              />
+            )}
           </div>
           
           <button 
@@ -244,8 +298,16 @@ function App() {
               type="text" 
               value={team2.name}
               onChange={(e) => setTeam2({ ...team2, name: e.target.value })}
-              className="bg-transparent text-3xl landscape:text-3xl landscape:md:text-5xl md:text-5xl font-bold text-center w-full outline-none focus:border-b-2 border-white/50 transition-colors font-prompt text-gray-800"
+              className="bg-transparent text-3xl landscape:text-xl landscape:md:text-5xl md:text-5xl font-bold text-center w-full outline-none focus:border-b-2 border-white/50 transition-colors font-prompt text-gray-800"
             />
+            {settings.enableDoublesMode && (
+              <PlayerRow
+                players={team2Players}
+                servingPosition={getServingPosition(2)}
+                onSwap={() => setTeam2Players(p => ({ left: p.right, right: p.left }))}
+                onEmojiTap={(pos) => setEmojiPicker({ team: 2, position: pos })}
+              />
+            )}
           </div>
           
           <button 
@@ -282,7 +344,7 @@ function App() {
             style={{ animation: 'bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
           >
             <ShuttlecockIcon className="w-20 h-20 landscape:w-16 landscape:h-16 landscape:md:w-24 landscape:md:h-24 md:w-24 md:h-24 mx-auto text-white drop-shadow-md mb-6 landscape:mb-4 landscape:md:mb-6" />
-            <h2 className="text-4xl landscape:text-3xl landscape:md:text-5xl md:text-5xl font-bold text-gray-900 mb-2 font-prompt">
+            <h2 className={`text-4xl landscape:text-3xl landscape:md:text-5xl md:text-5xl font-bold mb-2 font-prompt ${colorClasses[winner === 1 ? team1.color : team2.color].winnerText}`}>
               {winner === 1 ? team1.name : team2.name}
             </h2>
             <p className="text-2xl landscape:text-xl landscape:md:text-3xl md:text-3xl font-bold text-white drop-shadow-sm mb-8 landscape:mb-4 landscape:md:mb-8">
@@ -304,6 +366,41 @@ function App() {
           setSettings={setSettings} 
           onClose={() => setIsSettingsOpen(false)} 
         />
+      )}
+
+      {emojiPicker && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-sm p-4"
+          onClick={() => setEmojiPicker(null)}
+        >
+          <div
+            className="bg-white rounded-3xl p-5 w-full max-w-xs shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-sm font-bold text-gray-600 mb-4 font-prompt text-center">เลือกผู้เล่น</p>
+            <div className="grid grid-cols-5 gap-2">
+              {(() => {
+                const currentTeamPlayers = emojiPicker.team === 1 ? team1Players : team2Players;
+                const currentEmoji = currentTeamPlayers[emojiPicker.position];
+                const allUsed = [team1Players.left, team1Players.right, team2Players.left, team2Players.right];
+                return EMOJI_POOL.filter(e => e === currentEmoji || !allUsed.includes(e)).map(e => (
+                  <button
+                    key={e}
+                    onClick={() => handleEmojiSelect(e)}
+                    className={`text-3xl p-2 rounded-2xl transition-all active:scale-90
+                      ${e === currentEmoji
+                        ? 'bg-[var(--color-pastel-purple)]/20 ring-2 ring-[var(--color-pastel-purple)]'
+                        : 'hover:bg-gray-100'
+                      }
+                    `}
+                  >
+                    {e}
+                  </button>
+                ));
+              })()}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Add keyframes for the popup animation */}

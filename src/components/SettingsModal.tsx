@@ -1,6 +1,7 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import type { GameSettings } from '../App';
+import { THEME_PRESETS, themeSwatchBackground } from '../theme-presets';
 
 type Props = {
   settings: GameSettings;
@@ -25,6 +26,47 @@ const SettingsModal: React.FC<Props> = ({ settings, setSettings, onClose }) => {
         </div>
 
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
+          {/* Theme */}
+          <div className="space-y-3">
+            <label className="block text-sm font-bold text-gray-700 font-prompt">ธีมสี</label>
+            {/* debug: เลขบนสวอตช์ — ลบได้เมื่อคัดธีมเสร็จ */}
+            <div className="flex flex-wrap justify-center gap-3 pb-1">
+              {THEME_PRESETS.map((palette, i) => {
+                const selected = settings.themeIndex === i;
+                const n = i + 1;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setSettings({ ...settings, themeIndex: i })}
+                    className={`relative w-11 h-11 rounded-full transition-[filter,box-shadow] duration-150 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-pastel-purple)] ${
+                      selected
+                        ? 'ring-2 ring-offset-2 ring-[var(--color-pastel-purple)] shadow-sm'
+                        : 'ring-1 ring-black/10 hover:brightness-110'
+                    }`}
+                    style={{ background: themeSwatchBackground(palette) }}
+                    aria-label={`เลือกธีม ${n}`}
+                    aria-pressed={selected}
+                  >
+                    <span
+                      className="pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] font-bold font-mono tabular-nums text-white [text-shadow:0_0_3px_#000,0_0_6px_#000]"
+                      aria-hidden
+                    >
+                      {n}
+                    </span>
+                    {selected && (
+                      <span className="absolute -top-0.5 -right-0.5 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-black/10">
+                        <Check className="h-3 w-3 text-[var(--color-pastel-purple)]" strokeWidth={3} />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <hr className="border-gray-100" />
+
           {/* Target Score */}
           <div className="space-y-3">
             <label className="block text-sm font-bold text-gray-700 font-prompt">
@@ -99,6 +141,23 @@ const SettingsModal: React.FC<Props> = ({ settings, setSettings, onClose }) => {
                 />
                 <div className={`block w-14 h-8 rounded-full transition-colors shadow-inner ${settings.enableServingLogic ? 'bg-[var(--color-pastel-purple)]' : 'bg-gray-200'}`}></div>
                 <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform shadow-sm ${settings.enableServingLogic ? 'transform translate-x-6' : ''}`}></div>
+              </div>
+            </label>
+
+            <label className="flex items-center justify-between cursor-pointer group">
+              <div>
+                <div className="font-bold text-gray-800 group-hover:text-[var(--color-pastel-purple)] transition-colors font-prompt">โหมดคู่ (Doubles Mode)</div>
+                <div className="text-sm text-gray-500 font-prompt">แสดง Emoji ผู้เล่นและสลับตำแหน่งอัตโนมัติตามกติกา</div>
+              </div>
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  className="sr-only" 
+                  checked={settings.enableDoublesMode}
+                  onChange={(e) => setSettings({ ...settings, enableDoublesMode: e.target.checked })}
+                />
+                <div className={`block w-14 h-8 rounded-full transition-colors shadow-inner ${settings.enableDoublesMode ? 'bg-[var(--color-pastel-purple)]' : 'bg-gray-200'}`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform shadow-sm ${settings.enableDoublesMode ? 'transform translate-x-6' : ''}`}></div>
               </div>
             </label>
           </div>
