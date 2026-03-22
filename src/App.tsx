@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, RotateCcw, Minus, CircleDot } from 'lucide-react';
+import { Settings, RotateCcw, Minus, CircleDot, ArrowLeftRight } from 'lucide-react';
 import SettingsModal from './components/SettingsModal';
 import { playScoreSound, playWinSound } from './utils/audio';
 
@@ -31,9 +31,24 @@ export type GameSettings = {
   enableServingLogic: boolean;
 };
 
+type TeamColor = 'blue' | 'pink';
+
+const colorClasses: Record<TeamColor, { bg: string; bgDark: string; winnerBg: string }> = {
+  blue: {
+    bg: 'bg-[var(--color-pastel-blue-light)]',
+    bgDark: 'hover:bg-[var(--color-pastel-blue-dark)] active:bg-[var(--color-pastel-blue-dark)]',
+    winnerBg: 'bg-[var(--color-pastel-blue-dark)]',
+  },
+  pink: {
+    bg: 'bg-[var(--color-pastel-pink-light)]',
+    bgDark: 'hover:bg-[var(--color-pastel-pink-dark)] active:bg-[var(--color-pastel-pink-dark)]',
+    winnerBg: 'bg-[var(--color-pastel-pink-dark)]',
+  },
+};
+
 function App() {
-  const [team1, setTeam1] = useState({ name: 'Team A', score: 0 });
-  const [team2, setTeam2] = useState({ name: 'Team B', score: 0 });
+  const [team1, setTeam1] = useState({ name: 'Team A', score: 0, color: 'blue' as TeamColor });
+  const [team2, setTeam2] = useState({ name: 'Team B', score: 0, color: 'pink' as TeamColor });
   
   const [settings, setSettings] = useState<GameSettings>({
     targetScore: 21,
@@ -104,12 +119,24 @@ function App() {
     }
   };
 
+  const handleSwap = () => {
+    setTeam1(team2);
+    setTeam2(team1);
+    setServingTeam(prev => (prev === 1 ? 2 : 1));
+  };
+
   const handleReset = () => {
-    setTeam1(prev => ({ ...prev, score: 0 }));
-    setTeam2(prev => ({ ...prev, score: 0 }));
+    setTeam1(prev => ({ ...prev, score: 0, color: 'blue' }));
+    setTeam2(prev => ({ ...prev, score: 0, color: 'pink' }));
     setWinner(null);
     setServingTeam(1);
   };
+
+  const isDeuceMode =
+    !winner &&
+    settings.enableDeuce &&
+    team1.score >= settings.targetScore - 1 &&
+    team2.score >= settings.targetScore - 1;
 
   const renderServingIndicator = (teamIndex: 1 | 2, score: number) => {
     if (!settings.enableServingLogic) return null;
@@ -134,15 +161,29 @@ function App() {
       {/* Top Bar */}
       <div className="flex items-center justify-between p-4 landscape:p-2 landscape:md:p-4 bg-[var(--color-pastel-purple)] shadow-sm z-20 rounded-b-2xl mx-2 mt-2 landscape:mt-1 landscape:md:mt-2 relative">
         {/* Empty div for flex spacing */}
-        <div className="w-24"></div>
+        <div className="w-36"></div>
         
         {/* Center Logo & Title */}
-        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-          <ShuttlecockIcon className="w-8 h-8 landscape:w-6 landscape:h-6 landscape:md:w-8 landscape:md:h-8 text-white drop-shadow-sm" />
-          <h1 className="text-3xl landscape:text-xl landscape:md:text-3xl font-bold text-white hidden sm:block drop-shadow-sm font-poppins tracking-wide">Scorbie</h1>
+        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 pointer-events-none">
+          <div className="flex items-center gap-2">
+            <ShuttlecockIcon className="w-8 h-8 landscape:w-6 landscape:h-6 landscape:md:w-8 landscape:md:h-8 text-white drop-shadow-sm" />
+            <h1 className="text-3xl landscape:text-xl landscape:md:text-3xl font-bold text-white hidden sm:block drop-shadow-sm font-poppins tracking-wide">Scorbie</h1>
+          </div>
+          {isDeuceMode && (
+            <span className="bg-amber-400 text-white text-xs landscape:text-[10px] landscape:md:text-xs font-bold px-3 py-0.5 rounded-full tracking-widest uppercase animate-pulse shadow-md">
+              Deuce
+            </span>
+          )}
         </div>
 
         <div className="flex gap-4 landscape:gap-2 landscape:md:gap-4">
+          <button 
+            onClick={handleSwap}
+            className="p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors active:scale-95"
+            title="Swap Teams"
+          >
+            <ArrowLeftRight className="w-6 h-6 landscape:w-5 landscape:h-5 landscape:md:w-6 landscape:md:h-6" />
+          </button>
           <button 
             onClick={handleReset}
             className="p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors active:scale-95"
@@ -163,7 +204,7 @@ function App() {
       {/* Main Score Area */}
       <div className="flex-1 flex flex-col landscape:flex-row md:flex-row relative p-2 landscape:p-2 landscape:md:p-4 gap-2 landscape:gap-2 landscape:md:gap-4">
         {/* Team 1 */}
-        <div className="flex-1 flex flex-col relative rounded-3xl overflow-hidden bg-[var(--color-pastel-blue-light)] shadow-sm border-2 border-white/50">
+        <div className={`flex-1 flex flex-col relative rounded-3xl overflow-hidden shadow-sm border-2 border-white/50 transition-colors duration-500 ${isDeuceMode ? 'bg-amber-100' : colorClasses[team1.color].bg}`}>
           <div className="p-4 landscape:p-2 landscape:md:p-4 text-center z-10 bg-white/30 backdrop-blur-sm border-b border-white/40">
             <input 
               type="text" 
@@ -177,7 +218,7 @@ function App() {
             onClick={() => handleScore(1, 1)}
             disabled={winner !== null}
             className={`flex-1 flex flex-col items-center justify-center transition-colors cursor-pointer relative
-              hover:bg-[var(--color-pastel-blue-dark)] active:bg-[var(--color-pastel-blue-dark)]
+              ${isDeuceMode ? 'hover:bg-amber-200 active:bg-amber-300' : colorClasses[team1.color].bgDark}
               ${winner !== null && winner !== 1 ? 'opacity-50 grayscale' : ''}
             `}
           >
@@ -197,7 +238,7 @@ function App() {
         </div>
 
         {/* Team 2 */}
-        <div className="flex-1 flex flex-col relative rounded-3xl overflow-hidden bg-[var(--color-pastel-pink-light)] shadow-sm border-2 border-white/50">
+        <div className={`flex-1 flex flex-col relative rounded-3xl overflow-hidden shadow-sm border-2 border-white/50 transition-colors duration-500 ${isDeuceMode ? 'bg-amber-100' : colorClasses[team2.color].bg}`}>
           <div className="p-4 landscape:p-2 landscape:md:p-4 text-center z-10 bg-white/30 backdrop-blur-sm border-b border-white/40">
             <input 
               type="text" 
@@ -211,7 +252,7 @@ function App() {
             onClick={() => handleScore(2, 1)}
             disabled={winner !== null}
             className={`flex-1 flex flex-col items-center justify-center transition-colors cursor-pointer relative
-              hover:bg-[var(--color-pastel-pink-dark)] active:bg-[var(--color-pastel-pink-dark)]
+              ${isDeuceMode ? 'hover:bg-amber-200 active:bg-amber-300' : colorClasses[team2.color].bgDark}
               ${winner !== null && winner !== 2 ? 'opacity-50 grayscale' : ''}
             `}
           >
@@ -236,7 +277,7 @@ function App() {
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
           <div 
             className={`rounded-3xl shadow-2xl p-8 landscape:p-6 landscape:md:p-12 md:p-12 text-center max-w-lg w-full transform animate-bounce-in border-4 border-white
-              ${winner === 1 ? 'bg-[var(--color-pastel-blue-dark)]' : 'bg-[var(--color-pastel-pink-dark)]'}
+              ${colorClasses[winner === 1 ? team1.color : team2.color].winnerBg}
             `}
             style={{ animation: 'bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
           >

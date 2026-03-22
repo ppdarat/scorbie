@@ -12,8 +12,8 @@ const SettingsModal: React.FC<Props> = ({ settings, setSettings, onClose }) => {
   const targetScores = [5, 11, 15, 17, 21];
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border-2 border-white">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border-2 border-white flex flex-col max-h-[90vh] my-auto">
         <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-[var(--color-pastel-purple)]">
           <h2 className="text-xl font-bold text-white drop-shadow-sm font-prompt">ตั้งค่าเกม (Settings)</h2>
           <button 
@@ -24,7 +24,7 @@ const SettingsModal: React.FC<Props> = ({ settings, setSettings, onClose }) => {
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Target Score */}
           <div className="space-y-3">
             <label className="block text-sm font-bold text-gray-700 font-prompt">
