@@ -404,23 +404,23 @@ function App() {
 
       {/* Winner Pop-up */}
       {winner && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+        <div className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/20 backdrop-blur-sm p-3 landscape:p-2">
           <div 
-            className={`rounded-3xl shadow-2xl p-8 landscape:p-6 landscape:md:p-12 md:p-12 text-center max-w-lg w-full transform animate-bounce-in border-4 border-white
+            className={`rounded-3xl shadow-2xl text-center max-w-lg w-full max-h-[min(90dvh,90svh)] landscape:max-h-[min(82dvh,82svh)] overflow-hidden flex flex-col items-center justify-center gap-4 landscape:gap-1.5 p-8 landscape:p-2.5 md:p-12 transform animate-bounce-in border-4 landscape:border-2 border-white
               ${colorClasses[winner === 1 ? team1.color : team2.color].winnerBg}
             `}
             style={{ animation: 'bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
           >
-            <ShuttlecockIcon className="w-20 h-20 landscape:w-16 landscape:h-16 landscape:md:w-24 landscape:md:h-24 md:w-24 md:h-24 mx-auto text-white drop-shadow-md mb-6 landscape:mb-4 landscape:md:mb-6" />
-            <h2 className={`text-4xl landscape:text-3xl landscape:md:text-5xl md:text-5xl font-bold mb-2 font-prompt ${colorClasses[winner === 1 ? team1.color : team2.color].winnerText}`}>
+            <ShuttlecockIcon className="shrink-0 w-20 h-20 landscape:w-[min(2.75rem,11vmin)] landscape:h-[min(2.75rem,11vmin)] md:w-24 md:h-24 mx-auto text-white drop-shadow-md" />
+            <h2 className={`w-full min-h-0 font-bold font-prompt px-1 text-4xl md:text-5xl landscape:text-[clamp(0.75rem,3.8vmin,1.5rem)] landscape:leading-tight landscape:line-clamp-2 landscape:break-words ${colorClasses[winner === 1 ? team1.color : team2.color].winnerText}`}>
               {winner === 1 ? team1.name : team2.name}
             </h2>
-            <p className="text-2xl landscape:text-xl landscape:md:text-3xl md:text-3xl font-bold text-white drop-shadow-sm mb-8 landscape:mb-4 landscape:md:mb-8">
+            <p className="shrink-0 text-2xl md:text-3xl font-bold text-white drop-shadow-sm landscape:text-[clamp(0.65rem,3vmin,1rem)] landscape:leading-tight">
               WINS THE GAME!
             </p>
             <button 
               onClick={handleReset}
-              className="bg-white text-gray-900 font-bold text-xl landscape:text-lg landscape:md:text-xl px-8 py-4 landscape:py-2 landscape:md:py-4 rounded-full hover:scale-105 active:scale-95 transition-transform shadow-md w-full"
+              className="shrink-0 bg-white text-gray-900 font-bold rounded-full hover:scale-105 active:scale-95 transition-transform shadow-md w-full text-xl px-8 py-4 landscape:text-[clamp(0.65rem,2.8vmin,0.95rem)] landscape:py-1.5 landscape:px-5 md:py-4"
             >
               Play Again
             </button>
