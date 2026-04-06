@@ -29,11 +29,9 @@ const SettingsModal: React.FC<Props> = ({ settings, setSettings, onClose }) => {
           {/* Theme */}
           <div className="space-y-3">
             <label className="block text-sm font-bold text-gray-700 font-prompt">ธีมสี</label>
-            {/* debug: เลขบนสวอตช์ — ลบได้เมื่อคัดธีมเสร็จ */}
             <div className="flex flex-wrap justify-center gap-3 pb-1">
               {THEME_PRESETS.map((palette, i) => {
                 const selected = settings.themeIndex === i;
-                const n = i + 1;
                 return (
                   <button
                     key={i}
@@ -45,15 +43,9 @@ const SettingsModal: React.FC<Props> = ({ settings, setSettings, onClose }) => {
                         : 'ring-1 ring-black/10 hover:brightness-110'
                     }`}
                     style={{ background: themeSwatchBackground(palette) }}
-                    aria-label={`เลือกธีม ${n}`}
+                    aria-label={`เลือกชุดสีธีมที่ ${i + 1}`}
                     aria-pressed={selected}
                   >
-                    <span
-                      className="pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] font-bold font-mono tabular-nums text-white [text-shadow:0_0_3px_#000,0_0_6px_#000]"
-                      aria-hidden
-                    >
-                      {n}
-                    </span>
                     {selected && (
                       <span className="absolute -top-0.5 -right-0.5 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-black/10">
                         <Check className="h-3 w-3 text-[var(--color-pastel-purple)]" strokeWidth={3} />

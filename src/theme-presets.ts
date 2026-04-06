@@ -1,28 +1,24 @@
 export type ThemePalette = readonly [string, string, string, string, string];
 
-/** [0]=accent, [1]=teamA main, [2]=teamB main, [3][4]=extra */
+/**
+ * [0]=accent, [1]=teamA main, [2]=teamB main, [3][4]=extra
+ * Default ก่อน; คู่สีคอนทราสต์ (ม่วง×ส้ม / เขียว×แดง) อยู่ช่อง 2 กับ 5
+ */
 export const THEME_PRESETS: readonly ThemePalette[] = [
   // Default
   ['#cdb4db', '#a2d2ff', '#ffafcc', '#bde0fe', '#ffc8dd'],
-  // Light (avg brightness desc)
+  // แทนที่ธีมเดิม #2: ม่วงเข้ม × ส้มสด
+  ['#5a189a', '#240046', '#fb5607', '#3c096c', '#ffbe0b'],
   ['#d4a373', '#ccd5ae', '#faedcd', '#e9edc9', '#fefae0'],
-  ['#d8e2dc', '#ffe5d9', '#f4acb7', '#ffcad4', '#9d8189'],
+  ['#9381ff', '#b8b8ff', '#f8f7ff', '#ffeedd', '#ffd8be'],
+  // แทนที่ธีมเดิม #6: เขียวเข้ม × แดง
+  ['#007f5f', '#004b3d', '#e01e37', '#2b9348', '#ffe8e8'],
   ['#ff686b', '#84dcc6', '#ffa69e', '#a5ffd6', '#ffffff'],
-  ['#ff9f1c', '#ffbf69', '#2ec4b6', '#ffffff', '#cbf3f0'],
-  ['#2c6e49', '#4c956c', '#ffc9b9', '#fefee3', '#d68c45'],
+  ['#0081a7', '#00afb9', '#fdfcdc', '#fed9b7', '#f07167'],
   ['#3d348b', '#7678ed', '#f18701', '#f7b801', '#f35b04'],
-  ['#461220', '#8c2f39', '#fcb9b2', '#b23a48', '#fed0bb'],
   ['#023047', '#219ebc', '#fb8500', '#ffb703', '#8ecae6'],
-  ['#000000', '#14213d', '#e5e5e5', '#fca311', '#ffffff'],
-  ['#0a100d', '#a22c29', '#b9baa3', '#d6d5c9', '#902923'],
-  // Dark (avg brightness desc)
-  ['#6f1d1b', '#bb9457', '#99582a', '#432818', '#ffe6a7'],
-  ['#e63946', '#a8dadc', '#1d3557', '#457b9d', '#f1faee'],
-  ['#001524', '#15616d', '#ff7d00', '#ffecd1', '#78290f'],
-  ['#000000', '#14213d', '#fca311', '#e5e5e5', '#ffffff'],
-  ['#d62839', '#ba324f', '#175676', '#4ba3c3', '#cce6f4'],
-  ['#820263', '#d90368', '#2e294e', '#eadeda', '#ffd400'],
-  ['#780000', '#c1121f', '#003049', '#fdf0d5', '#669bbc'],
+  // แดง × ฟ้า (ซ้าย #e63946 / ขวา #00b4d8)
+  ['#e63946', '#e63946', '#00b4d8', '#457b9d', '#1d3557'],
 ] as const;
 
 /** t=0 → main, t=1 → white; larger t = brighter panel */
@@ -70,7 +66,10 @@ export function applyThemePalette(palette: ThemePalette): void {
   root.style.setProperty('--text-on-pink-dark', contrastText(mainB));
 }
 
+/** ตรงกับพื้น panel บนหน้านับคะแนน (ผสมขาวเท่า applyThemePalette) */
 export function themeSwatchBackground(palette: ThemePalette): string {
-  const [, left, right] = palette;
+  const [, mainA, mainB] = palette;
+  const left = mixWithWhite(mainA, PANEL_TOWARD_WHITE);
+  const right = mixWithWhite(mainB, PANEL_TOWARD_WHITE);
   return `linear-gradient(90deg, ${left} 50%, ${right} 50%)`;
 }
