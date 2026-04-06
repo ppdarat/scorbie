@@ -13,9 +13,9 @@ export default function PlayerRow({ players, servingPosition, onSwap, onEmojiTap
     return (
       <button
         onClick={() => onEmojiTap(position)}
-        className={`text-3xl landscape:text-xl leading-none transition-all duration-200 rounded-full w-12 h-12 landscape:w-8 landscape:h-8 flex items-center justify-center active:scale-90
+        className={`text-5xl landscape:text-3xl landscape:md:text-5xl leading-none transition-all duration-200 rounded-full w-[4.25rem] h-[4.25rem] landscape:w-[3rem] landscape:h-[3rem] landscape:md:w-[3.75rem] landscape:md:h-[3.75rem] flex items-center justify-center active:scale-90
           ${isServing
-            ? 'scale-125 landscape:scale-110 ring-2 ring-[var(--color-pastel-purple)] ring-offset-2 bg-white/80 shadow-md'
+            ? 'scale-110 landscape:scale-105 ring-[3px] ring-[var(--color-pastel-purple)] ring-offset-[3px] bg-white/80 shadow-md'
             : 'opacity-60 hover:opacity-95'
           }
         `}

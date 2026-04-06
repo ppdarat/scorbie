@@ -96,7 +96,7 @@ const SettingsModal: React.FC<Props> = ({ settings, setSettings, onClose }) => {
             <label className="flex items-center justify-between cursor-pointer group">
               <div>
                 <div className="font-bold text-gray-800 group-hover:text-[var(--color-pastel-purple)] transition-colors font-prompt">ระบบดิวซ์ (Deuce)</div>
-                <div className="text-sm text-gray-500 font-prompt">ต้องชนะห่าง 2 แต้มเมื่อคะแนนเสมอที่แต้มก่อนชนะ</div>
+                <div className="text-sm text-gray-500 font-prompt">เกมพอยต์เสมอ ต้องนำสองแต้มถึงชนะ</div>
               </div>
               <div className="relative">
                 <input 
@@ -112,24 +112,7 @@ const SettingsModal: React.FC<Props> = ({ settings, setSettings, onClose }) => {
 
             <label className="flex items-center justify-between cursor-pointer group">
               <div>
-                <div className="font-bold text-gray-800 group-hover:text-[var(--color-pastel-purple)] transition-colors font-prompt">กฎ 3-0 ชนะทันที (Skunk Rule)</div>
-                <div className="text-sm text-gray-500 font-prompt">ถ้าคะแนนห่าง 3-0 ให้ถือว่าชนะเกมทันที</div>
-              </div>
-              <div className="relative">
-                <input 
-                  type="checkbox" 
-                  className="sr-only" 
-                  checked={settings.enableSkunkRule}
-                  onChange={(e) => setSettings({ ...settings, enableSkunkRule: e.target.checked })}
-                />
-                <div className={`block w-14 h-8 rounded-full transition-colors shadow-inner ${settings.enableSkunkRule ? 'bg-[var(--color-pastel-purple)]' : 'bg-gray-200'}`}></div>
-                <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform shadow-sm ${settings.enableSkunkRule ? 'transform translate-x-6' : ''}`}></div>
-              </div>
-            </label>
-
-            <label className="flex items-center justify-between cursor-pointer group">
-              <div>
-                <div className="font-bold text-gray-800 group-hover:text-[var(--color-pastel-purple)] transition-colors font-prompt">แสดงฝั่งเสิร์ฟ (Serving Side)</div>
+                <div className="font-bold text-gray-800 group-hover:text-[var(--color-pastel-purple)] transition-colors font-prompt">แสดงฝั่งเสิร์ฟ (Serving side)</div>
                 <div className="text-sm text-gray-500 font-prompt">แต้มคู่เสิร์ฟขวา แต้มคี่เสิร์ฟซ้าย</div>
               </div>
               <div className="relative">
@@ -146,8 +129,8 @@ const SettingsModal: React.FC<Props> = ({ settings, setSettings, onClose }) => {
 
             <label className="flex items-center justify-between cursor-pointer group">
               <div>
-                <div className="font-bold text-gray-800 group-hover:text-[var(--color-pastel-purple)] transition-colors font-prompt">โหมดคู่ (Doubles Mode)</div>
-                <div className="text-sm text-gray-500 font-prompt">แสดง Emoji ผู้เล่นและสลับตำแหน่งอัตโนมัติตามกติกา</div>
+                <div className="font-bold text-gray-800 group-hover:text-[var(--color-pastel-purple)] transition-colors font-prompt">โหมดคู่ (Doubles mode)</div>
+                <div className="text-sm text-gray-500 font-prompt">กติกาคู่ สลับตำแหน่งอัตโนมัติเมื่อคะแนนเปลี่ยน</div>
               </div>
               <div className="relative">
                 <input 
@@ -158,6 +141,49 @@ const SettingsModal: React.FC<Props> = ({ settings, setSettings, onClose }) => {
                 />
                 <div className={`block w-14 h-8 rounded-full transition-colors shadow-inner ${settings.enableDoublesMode ? 'bg-[var(--color-pastel-purple)]' : 'bg-gray-200'}`}></div>
                 <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform shadow-sm ${settings.enableDoublesMode ? 'transform translate-x-6' : ''}`}></div>
+              </div>
+            </label>
+
+            <label
+              className={`flex items-center justify-between group ${settings.enableDoublesMode ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+            >
+              <div>
+                <div className="font-bold text-gray-800 font-prompt">แถวอีโมจิผู้เล่น (Player emoji row)</div>
+                <div className="text-sm text-gray-500 font-prompt">
+                  {settings.enableDoublesMode ? 'แสดง/ซ่อนแถวอีโมจิ' : 'เปิดโหมดคู่ก่อน'}
+                </div>
+              </div>
+              <div className="relative shrink-0">
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  disabled={!settings.enableDoublesMode}
+                  checked={settings.showDoublesPlayerRow}
+                  onChange={(e) => setSettings({ ...settings, showDoublesPlayerRow: e.target.checked })}
+                />
+                <div
+                  className={`block w-14 h-8 rounded-full transition-colors shadow-inner ${settings.showDoublesPlayerRow && settings.enableDoublesMode ? 'bg-[var(--color-pastel-purple)]' : 'bg-gray-200'}`}
+                ></div>
+                <div
+                  className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform shadow-sm ${settings.showDoublesPlayerRow && settings.enableDoublesMode ? 'transform translate-x-6' : ''}`}
+                ></div>
+              </div>
+            </label>
+
+            <label className="flex items-center justify-between cursor-pointer group">
+              <div>
+                <div className="font-bold text-gray-800 group-hover:text-[var(--color-pastel-purple)] transition-colors font-prompt">ชื่อทีม (Team name)</div>
+                <div className="text-sm text-gray-500 font-prompt">แสดง/ซ่อนแถวชื่อทีม</div>
+              </div>
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={settings.showTeamNames}
+                  onChange={(e) => setSettings({ ...settings, showTeamNames: e.target.checked })}
+                />
+                <div className={`block w-14 h-8 rounded-full transition-colors shadow-inner ${settings.showTeamNames ? 'bg-[var(--color-pastel-purple)]' : 'bg-gray-200'}`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform shadow-sm ${settings.showTeamNames ? 'transform translate-x-6' : ''}`}></div>
               </div>
             </label>
           </div>

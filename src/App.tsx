@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Settings, RotateCcw, Minus, CircleDot, ArrowLeftRight } from 'lucide-react';
+import { Settings, RotateCcw, Minus, ArrowLeftRight, PanelTop, ChevronDown } from 'lucide-react';
 import SettingsModal from './components/SettingsModal';
 import PlayerRow from './components/PlayerRow';
 import { playScoreSound, playWinSound } from './utils/audio';
 import { applyThemePalette, THEME_PRESETS } from './theme-presets';
 
-const EMOJI_POOL = ['🐳', '🦄', '🐸', '🦊', '🐙', '🦁', '🐶', '🐼', '🐱', '🐔'];
+const EMOJI_POOL = ['🐳', '🦄', '🐸', '🦊', '🐙', '🦁', '🐶', '🐼', '🐱', '🐔', '🌍', '🎄', '🍭', '🍦'];
 
 // Custom Shuttlecock Icon
 const ShuttlecockIcon = ({ className }: { className?: string }) => (
@@ -30,11 +30,13 @@ const ShuttlecockIcon = ({ className }: { className?: string }) => (
 
 export type GameSettings = {
   targetScore: number;
-  enableSkunkRule: boolean;
   enableDeuce: boolean;
   enableServingLogic: boolean;
   enableDoublesMode: boolean;
   themeIndex: number;
+  showTeamNames: boolean;
+  /** โหมดคู่เปิดอยู่: แสดง/ซ่อนแถวอีโมจีผู้เล่น (กติกาโหมดคู่ยังทำงาน) */
+  showDoublesPlayerRow: boolean;
 };
 
 type TeamPlayers = { left: string; right: string };
@@ -63,12 +65,15 @@ function App() {
   
   const [settings, setSettings] = useState<GameSettings>({
     targetScore: 21,
-    enableSkunkRule: false,
     enableDeuce: true,
     enableServingLogic: true,
-    enableDoublesMode: false,
+    enableDoublesMode: true,
     themeIndex: 0,
+    showTeamNames: false,
+    showDoublesPlayerRow: false,
   });
+
+  const [showNavBar, setShowNavBar] = useState(false);
 
   useEffect(() => {
     const i = Math.min(Math.max(0, settings.themeIndex), THEME_PRESETS.length - 1);
@@ -83,6 +88,8 @@ function App() {
   const [winner, setWinner] = useState<number | null>(null);
   const [servingTeam, setServingTeam] = useState<1 | 2>(1);
 
+  const showDoublesRow = settings.enableDoublesMode && settings.showDoublesPlayerRow;
+
   // Check win condition whenever scores change
   useEffect(() => {
     if (winner) return;
@@ -93,15 +100,7 @@ function App() {
 
     let newWinner: number | null = null;
 
-    // Skunk rule (3-0 instant win)
-    if (settings.enableSkunkRule) {
-      if (s1 === 3 && s2 === 0) newWinner = 1;
-      else if (s2 === 3 && s1 === 0) newWinner = 2;
-    }
-
-    // Normal win & Deuce logic
-    if (!newWinner) {
-      if (settings.enableDeuce) {
+    if (settings.enableDeuce) {
         const isDeuceMode = s1 >= target - 1 && s2 >= target - 1;
         
         if (isDeuceMode) {
@@ -113,11 +112,10 @@ function App() {
           if (s1 >= target) newWinner = 1;
           else if (s2 >= target) newWinner = 2;
         }
-      } else {
-        // No deuce, first to target wins
-        if (s1 >= target) newWinner = 1;
-        else if (s2 >= target) newWinner = 2;
-      }
+    } else {
+      // No deuce, first to target wins
+      if (s1 >= target) newWinner = 1;
+      else if (s2 >= target) newWinner = 2;
     }
 
     if (newWinner) {
@@ -189,14 +187,27 @@ function App() {
     if (servingTeam !== teamIndex) return null;
 
     const isEven = score % 2 === 0;
+    const positionSide: 'left' | 'right' = isEven ? 'right' : 'left';
     const positionText = isEven ? 'ขวา (Right)' : 'ซ้าย (Left)';
     const positionClass = isEven ? 'right-4 landscape:right-8 md:right-8' : 'left-4 landscape:left-8 md:left-8';
 
+    const players = teamIndex === 1 ? team1Players : team2Players;
+    const serverEmoji = settings.enableDoublesMode ? players[positionSide] : null;
+
     return (
       <div className={`absolute top-6 landscape:top-4 landscape:md:top-6 ${positionClass} pointer-events-none z-20`}>
-        <div className="bg-white/90 backdrop-blur-sm text-gray-800 text-sm landscape:text-sm landscape:md:text-base md:text-base font-bold px-4 py-2 landscape:px-3 landscape:py-1 landscape:md:px-4 landscape:md:py-2 rounded-2xl flex flex-col items-center gap-1 shadow-md animate-bounce border-2 border-[var(--color-pastel-purple)]">
-          <CircleDot className="w-5 h-5 landscape:w-4 landscape:h-4 landscape:md:w-5 landscape:md:h-5 text-[var(--color-pastel-purple)]" />
-          <span className="font-prompt leading-none">เสิร์ฟ{positionText.split(' ')[0]}</span>
+        <div className="bg-white/90 backdrop-blur-sm text-gray-800 font-bold px-3 py-2 landscape:px-3 landscape:py-2 landscape:md:px-4 landscape:md:py-3 rounded-2xl flex flex-col items-center gap-1.5 shadow-md animate-bounce border-2 border-[var(--color-pastel-purple)] min-w-[4.5rem]">
+          {serverEmoji !== null ? (
+            <span
+              className="text-5xl landscape:text-4xl landscape:md:text-6xl md:text-6xl leading-none [filter:drop-shadow(0_1px_2px_rgb(0_0_0/15%))]"
+              aria-hidden
+            >
+              {serverEmoji}
+            </span>
+          ) : null}
+          <span className="font-prompt leading-none text-base landscape:text-sm landscape:md:text-lg md:text-lg">
+            เสิร์ฟ{positionText.split(' ')[0]}
+          </span>
         </div>
       </div>
     );
@@ -205,68 +216,121 @@ function App() {
   return (
     <div className="flex h-screen w-full flex-col bg-[color-mix(in_srgb,var(--color-pastel-blue-light)_22%,white)] text-gray-800 overflow-hidden select-none font-sans">
       {/* Top Bar */}
-      <div className="flex items-center justify-between p-4 landscape:p-2 landscape:md:p-4 bg-[var(--color-pastel-purple)] shadow-sm z-20 rounded-b-2xl mx-2 mt-2 landscape:mt-1 landscape:md:mt-2 relative">
-        {/* Empty div for flex spacing */}
-        <div className="w-36"></div>
-        
-        {/* Center Logo & Title */}
-        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 pointer-events-none">
-          <div className="flex items-center gap-2">
-            <ShuttlecockIcon className="w-8 h-8 landscape:w-6 landscape:h-6 landscape:md:w-8 landscape:md:h-8 text-white drop-shadow-sm" />
-            <h1 className="text-3xl landscape:text-xl landscape:md:text-3xl font-bold text-white hidden sm:block drop-shadow-sm font-poppins tracking-wide">Scorbie</h1>
+      {showNavBar && (
+        <div className="flex items-center justify-between p-4 landscape:p-2 landscape:md:p-4 bg-[var(--color-pastel-purple)] shadow-sm z-20 rounded-b-2xl mx-2 mt-2 landscape:mt-1 landscape:md:mt-2 relative">
+          <div className="flex w-36 shrink-0 justify-start">
+            <button
+              type="button"
+              onClick={() => setShowNavBar(false)}
+              className="p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors active:scale-95"
+              title="ซ่อนแถบด้านบน"
+            >
+              <ChevronDown className="w-6 h-6 landscape:w-5 landscape:h-5 landscape:md:w-6 landscape:md:h-6" />
+            </button>
           </div>
-          {isDeuceMode && (
-            <span className="bg-amber-400 text-white text-xs landscape:text-[10px] landscape:md:text-xs font-bold px-3 py-0.5 rounded-full tracking-widest uppercase animate-pulse shadow-md">
-              Deuce
-            </span>
-          )}
-        </div>
 
-        <div className="flex gap-4 landscape:gap-2 landscape:md:gap-4">
-          <button 
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 pointer-events-none">
+            <div className="flex items-center gap-2">
+              <ShuttlecockIcon className="w-8 h-8 landscape:w-6 landscape:h-6 landscape:md:w-8 landscape:md:h-8 text-white drop-shadow-sm" />
+              <h1 className="text-3xl landscape:text-xl landscape:md:text-3xl font-bold text-white hidden sm:block drop-shadow-sm font-poppins tracking-wide">Scorbie</h1>
+            </div>
+            {isDeuceMode && (
+              <span className="bg-amber-400 text-white text-xs landscape:text-[10px] landscape:md:text-xs font-bold px-3 py-0.5 rounded-full tracking-widest uppercase animate-pulse shadow-md">
+                Deuce
+              </span>
+            )}
+          </div>
+
+          <div className="flex gap-4 landscape:gap-2 landscape:md:gap-4">
+            <button
+              onClick={handleSwap}
+              className="p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors active:scale-95"
+              title="Swap Teams"
+            >
+              <ArrowLeftRight className="w-6 h-6 landscape:w-5 landscape:h-5 landscape:md:w-6 landscape:md:h-6" />
+            </button>
+            <button
+              onClick={handleReset}
+              className="p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors active:scale-95"
+              title="Reset Game"
+            >
+              <RotateCcw className="w-6 h-6 landscape:w-5 landscape:h-5 landscape:md:w-6 landscape:md:h-6" />
+            </button>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors active:scale-95"
+              title="Settings"
+            >
+              <Settings className="w-6 h-6 landscape:w-5 landscape:h-5 landscape:md:w-6 landscape:md:h-6" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!showNavBar && (
+        <div className="fixed bottom-4 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-white/40 bg-[var(--color-pastel-purple)]/95 px-2 py-1.5 shadow-lg backdrop-blur-sm landscape:bottom-3">
+          {isDeuceMode && (
+            <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-amber-200">Deuce</span>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowNavBar(true)}
+            className="rounded-full bg-white/20 p-2 text-white transition-colors hover:bg-white/30 active:scale-95"
+            title="แสดงแถบด้านบน"
+          >
+            <PanelTop className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
             onClick={handleSwap}
-            className="p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors active:scale-95"
+            className="rounded-full bg-white/20 p-2 text-white transition-colors hover:bg-white/30 active:scale-95"
             title="Swap Teams"
           >
-            <ArrowLeftRight className="w-6 h-6 landscape:w-5 landscape:h-5 landscape:md:w-6 landscape:md:h-6" />
+            <ArrowLeftRight className="h-5 w-5" />
           </button>
-          <button 
+          <button
+            type="button"
             onClick={handleReset}
-            className="p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors active:scale-95"
+            className="rounded-full bg-white/20 p-2 text-white transition-colors hover:bg-white/30 active:scale-95"
             title="Reset Game"
           >
-            <RotateCcw className="w-6 h-6 landscape:w-5 landscape:h-5 landscape:md:w-6 landscape:md:h-6" />
+            <RotateCcw className="h-5 w-5" />
           </button>
-          <button 
+          <button
+            type="button"
             onClick={() => setIsSettingsOpen(true)}
-            className="p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors active:scale-95"
+            className="rounded-full bg-white/20 p-2 text-white transition-colors hover:bg-white/30 active:scale-95"
             title="Settings"
           >
-            <Settings className="w-6 h-6 landscape:w-5 landscape:h-5 landscape:md:w-6 landscape:md:h-6" />
+            <Settings className="h-5 w-5" />
           </button>
         </div>
-      </div>
+      )}
 
       {/* Main Score Area */}
       <div className="flex-1 flex flex-col landscape:flex-row md:flex-row relative p-2 landscape:p-2 landscape:md:p-4 gap-2 landscape:gap-2 landscape:md:gap-4">
         {/* Team 1 */}
         <div className={`flex-1 flex flex-col relative rounded-3xl overflow-hidden shadow-sm border-2 border-white/50 transition-colors duration-500 ${isDeuceMode ? 'bg-amber-100' : colorClasses[team1.color].bg}`}>
-          <div className="p-4 landscape:p-2 landscape:md:p-4 text-center z-10 bg-white/30 backdrop-blur-sm border-b border-white/40">
-            <input 
-              type="text" 
-              value={team1.name}
-              onChange={(e) => setTeam1({ ...team1, name: e.target.value })}
-              className="bg-transparent text-3xl landscape:text-xl landscape:md:text-5xl md:text-5xl font-bold text-center w-full outline-none focus:border-b-2 border-white/50 transition-colors font-prompt text-gray-800"
-            />
-            {settings.enableDoublesMode && (
-              <PlayerRow
-                players={team1Players}
-                servingPosition={getServingPosition(1)}
-                onSwap={() => setTeam1Players(p => ({ left: p.right, right: p.left }))}
-                onEmojiTap={(pos) => setEmojiPicker({ team: 1, position: pos })}
-              />
-            )}
-          </div>
+          {(settings.showTeamNames || showDoublesRow) && (
+            <div className={`text-center z-10 bg-white/30 backdrop-blur-sm border-b border-white/40 ${settings.showTeamNames ? 'p-4 landscape:p-2 landscape:md:p-4' : 'py-2 landscape:py-1'}`}>
+              {settings.showTeamNames && (
+                <input
+                  type="text"
+                  value={team1.name}
+                  onChange={(e) => setTeam1({ ...team1, name: e.target.value })}
+                  className="bg-transparent text-3xl landscape:text-xl landscape:md:text-5xl md:text-5xl font-bold text-center w-full outline-none focus:border-b-2 border-white/50 transition-colors font-prompt text-gray-800"
+                />
+              )}
+              {showDoublesRow && (
+                <PlayerRow
+                  players={team1Players}
+                  servingPosition={getServingPosition(1)}
+                  onSwap={() => setTeam1Players(p => ({ left: p.right, right: p.left }))}
+                  onEmojiTap={(pos) => setEmojiPicker({ team: 1, position: pos })}
+                />
+              )}
+            </div>
+          )}
           
           <button 
             onClick={() => handleScore(1, 1)}
@@ -282,33 +346,37 @@ function App() {
             </span>
           </button>
 
-          <button 
+          <button
             onClick={(e) => { e.stopPropagation(); handleScore(1, -1); }}
             disabled={winner !== null || team1.score === 0}
-            className="absolute bottom-6 left-6 landscape:bottom-4 landscape:left-4 landscape:md:bottom-6 landscape:md:left-6 p-4 landscape:p-3 landscape:md:p-6 rounded-full bg-white/80 hover:bg-white text-gray-800 shadow-sm z-20 disabled:opacity-30 disabled:cursor-not-allowed active:scale-90 transition-transform"
+            className="absolute bottom-4 left-4 landscape:bottom-3 landscape:left-3 landscape:md:bottom-4 landscape:md:left-4 p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/80 hover:bg-white text-gray-800 shadow-sm z-20 disabled:opacity-30 disabled:cursor-not-allowed active:scale-90 transition-transform"
           >
-            <Minus className="w-8 h-8 landscape:w-8 landscape:h-8 landscape:md:w-10 landscape:md:h-10 md:w-10 md:h-10" />
+            <Minus className="w-5 h-5 landscape:w-4 landscape:h-4 landscape:md:w-5 landscape:md:h-5 md:w-5 md:h-5" />
           </button>
         </div>
 
         {/* Team 2 */}
         <div className={`flex-1 flex flex-col relative rounded-3xl overflow-hidden shadow-sm border-2 border-white/50 transition-colors duration-500 ${isDeuceMode ? 'bg-amber-100' : colorClasses[team2.color].bg}`}>
-          <div className="p-4 landscape:p-2 landscape:md:p-4 text-center z-10 bg-white/30 backdrop-blur-sm border-b border-white/40">
-            <input 
-              type="text" 
-              value={team2.name}
-              onChange={(e) => setTeam2({ ...team2, name: e.target.value })}
-              className="bg-transparent text-3xl landscape:text-xl landscape:md:text-5xl md:text-5xl font-bold text-center w-full outline-none focus:border-b-2 border-white/50 transition-colors font-prompt text-gray-800"
-            />
-            {settings.enableDoublesMode && (
-              <PlayerRow
-                players={team2Players}
-                servingPosition={getServingPosition(2)}
-                onSwap={() => setTeam2Players(p => ({ left: p.right, right: p.left }))}
-                onEmojiTap={(pos) => setEmojiPicker({ team: 2, position: pos })}
-              />
-            )}
-          </div>
+          {(settings.showTeamNames || showDoublesRow) && (
+            <div className={`text-center z-10 bg-white/30 backdrop-blur-sm border-b border-white/40 ${settings.showTeamNames ? 'p-4 landscape:p-2 landscape:md:p-4' : 'py-2 landscape:py-1'}`}>
+              {settings.showTeamNames && (
+                <input
+                  type="text"
+                  value={team2.name}
+                  onChange={(e) => setTeam2({ ...team2, name: e.target.value })}
+                  className="bg-transparent text-3xl landscape:text-xl landscape:md:text-5xl md:text-5xl font-bold text-center w-full outline-none focus:border-b-2 border-white/50 transition-colors font-prompt text-gray-800"
+                />
+              )}
+              {showDoublesRow && (
+                <PlayerRow
+                  players={team2Players}
+                  servingPosition={getServingPosition(2)}
+                  onSwap={() => setTeam2Players(p => ({ left: p.right, right: p.left }))}
+                  onEmojiTap={(pos) => setEmojiPicker({ team: 2, position: pos })}
+                />
+              )}
+            </div>
+          )}
           
           <button 
             onClick={() => handleScore(2, 1)}
@@ -324,12 +392,12 @@ function App() {
             </span>
           </button>
 
-          <button 
+          <button
             onClick={(e) => { e.stopPropagation(); handleScore(2, -1); }}
             disabled={winner !== null || team2.score === 0}
-            className="absolute bottom-6 right-6 landscape:bottom-4 landscape:right-4 landscape:md:bottom-6 landscape:md:right-6 p-4 landscape:p-3 landscape:md:p-6 rounded-full bg-white/80 hover:bg-white text-gray-800 shadow-sm z-20 disabled:opacity-30 disabled:cursor-not-allowed active:scale-90 transition-transform"
+            className="absolute bottom-4 right-4 landscape:bottom-3 landscape:right-3 landscape:md:bottom-4 landscape:md:right-4 p-2 landscape:p-1.5 landscape:md:p-2 rounded-full bg-white/80 hover:bg-white text-gray-800 shadow-sm z-20 disabled:opacity-30 disabled:cursor-not-allowed active:scale-90 transition-transform"
           >
-            <Minus className="w-8 h-8 landscape:w-8 landscape:h-8 landscape:md:w-10 landscape:md:h-10 md:w-10 md:h-10" />
+            <Minus className="w-5 h-5 landscape:w-4 landscape:h-4 landscape:md:w-5 landscape:md:h-5 md:w-5 md:h-5" />
           </button>
         </div>
       </div>
