@@ -404,23 +404,23 @@ function App() {
 
       {/* Winner Pop-up */}
       {winner && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/20 backdrop-blur-sm p-3 landscape:p-2">
+        <div className="absolute inset-0 z-50 flex items-stretch justify-stretch overflow-hidden bg-black/10 backdrop-blur-none p-0">
           <div 
-            className={`rounded-3xl shadow-2xl text-center max-w-lg w-full max-h-[min(90dvh,90svh)] landscape:max-h-[min(82dvh,82svh)] overflow-hidden flex flex-col items-center justify-center gap-4 landscape:gap-1.5 p-8 landscape:p-2.5 md:p-12 transform animate-bounce-in border-4 landscape:border-2 border-white
+            className={`text-center min-h-full h-full w-full max-w-none max-h-none rounded-none shadow-none border-0 overflow-hidden flex flex-col items-center justify-center gap-6 [@media(orientation:landscape)_and_(max-height:520px)]:gap-4 pt-[max(1rem,env(safe-area-inset-top,0px))] pb-[max(1rem,env(safe-area-inset-bottom,0px))] pl-[max(1.25rem,env(safe-area-inset-left,0px))] pr-[max(1.25rem,env(safe-area-inset-right,0px))] transform animate-bounce-in
               ${colorClasses[winner === 1 ? team1.color : team2.color].winnerBg}
             `}
             style={{ animation: 'bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
           >
-            <ShuttlecockIcon className="shrink-0 w-20 h-20 landscape:w-[min(2.75rem,11vmin)] landscape:h-[min(2.75rem,11vmin)] md:w-24 md:h-24 mx-auto text-white drop-shadow-md" />
-            <h2 className={`w-full min-h-0 font-bold font-prompt px-1 text-4xl md:text-5xl landscape:text-[clamp(0.75rem,3.8vmin,1.5rem)] landscape:leading-tight landscape:line-clamp-2 landscape:break-words ${colorClasses[winner === 1 ? team1.color : team2.color].winnerText}`}>
+            <ShuttlecockIcon className="shrink-0 mx-auto text-white drop-shadow-md w-[min(7rem,26vmin)] h-[min(7rem,26vmin)] [@media(orientation:landscape)_and_(max-height:520px)]:hidden" aria-hidden />
+            <h2 className={`w-full min-h-0 font-bold font-prompt px-2 leading-tight line-clamp-2 break-words [@media(orientation:landscape)_and_(max-height:520px)]:line-clamp-none text-[clamp(1.5rem,8vmin,3.25rem)] ${colorClasses[winner === 1 ? team1.color : team2.color].winnerText}`}>
               {winner === 1 ? team1.name : team2.name}
             </h2>
-            <p className="shrink-0 text-2xl md:text-3xl font-bold text-white drop-shadow-sm landscape:text-[clamp(0.65rem,3vmin,1rem)] landscape:leading-tight">
+            <p className="shrink-0 font-bold text-white drop-shadow-sm leading-tight text-[clamp(1.125rem,5.5vmin,2.25rem)]">
               WINS THE GAME!
             </p>
             <button 
               onClick={handleReset}
-              className="shrink-0 bg-white text-gray-900 font-bold rounded-full hover:scale-105 active:scale-95 transition-transform shadow-md w-full text-xl px-8 py-4 landscape:text-[clamp(0.65rem,2.8vmin,0.95rem)] landscape:py-1.5 landscape:px-5 md:py-4"
+              className="shrink-0 bg-white text-gray-900 font-bold rounded-full hover:scale-105 active:scale-95 transition-transform shadow-md w-full max-w-[min(100%,24rem)] mx-auto text-[clamp(1rem,4vmin,1.35rem)] py-3.5 px-10 min-w-[min(100%,18rem)]"
             >
               Play Again
             </button>
